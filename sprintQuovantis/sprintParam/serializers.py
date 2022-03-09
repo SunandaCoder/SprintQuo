@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from sprintParam.models import Sprint,Parameter
+from sprintParam.models import Sprint,Parameter,Votes
 
 
 class SprintSerializer(serializers.ModelSerializer):
@@ -44,3 +44,27 @@ class ParamSerializer(serializers.ModelSerializer):
             parameter_name=validate_data.get("parameter_name"),
         )
         return parameter
+
+
+class VoteSerializer(serializers.ModelSerializer):
+    """
+    Serializer is user to converting the python object for the Vote
+    """
+    class Meta:
+        model = Votes
+        fields = "__all__"
+
+    def create(self, validated_data):
+        """
+        for the votes operations
+        :param validated_data: validating the api data
+        :return: vote
+        """
+        vote = Votes.objects.create(
+            sprint_id=validated_data.get("sprint_id"),
+            parameter_id=validated_data.get("parameter_id"),
+            vote_by=validated_data.get("vote_by"),
+            vote_for= validated_data.get("vote_for"),
+        )
+
+        return vote
