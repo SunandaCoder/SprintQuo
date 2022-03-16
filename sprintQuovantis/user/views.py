@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import auth
 
+from user.utils import EncodeDecodeToken
+
 logging.basicConfig(filename="views.log", filemode="w")
 
 
@@ -44,27 +46,31 @@ class UserRegistration(APIView):
 
 
 class Login(APIView):
+    """
+    This class is created for login api
+    """
+
     def post(self, request):
         """
-         Description : - This method is writing Login of user
-        :param request:
-        :return: Response
+        This method is created for user login
+        :param request: web request for login the user
+        :return:response
         """
         try:
-            data = request.data
-            username = data.get("username")
-            password = data.get("password")
+            username = request.data.get("username")
+            password = request.data.get("password")
             user = auth.authenticate(username=username, password=password)
             if user is not None:
+                encoded_token = EncodeDecodeToken.encode_token(user.pk)
                 return Response(
                     {
-                        "MESSAGE": "User login successfully", "data": data.get("username")
-                    },
-                    status=status.HTTP_202_ACCEPTED)
-
-        except Exception as e:
+                        "message": "logged in successfully",
+                        "data": {"token": encoded_token}
+                    }, status=status.HTTP_202_ACCEPTED)
             return Response(
                 {
-                    "MESSAGE": "Invalidate credentials ", "error": str(e)
+                    "message": "login failed No user"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_404_NOT_FOUND)
+        except ValidationError:
+            logging.error("Authentication failed")

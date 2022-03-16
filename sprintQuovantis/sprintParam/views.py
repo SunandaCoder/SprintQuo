@@ -1,11 +1,13 @@
 import logging
 from rest_framework.views import APIView
+# from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+# from rest_framework import permissions
 from sprintParam.serializers import SprintSerializer, ParamSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from sprintParam.models import Sprint, Parameter
-from django.views.decorators.csrf import csrf_exempt
+from sprintParam.utility import verify_token
 
 logging.basicConfig(filename="views.log", filemode="w")
 
@@ -15,6 +17,7 @@ class SprintQuo(APIView):
     This class is created for Sprint
     """
 
+    @verify_token
     def post(self, request):
         """
         this method is created for inserting the data
@@ -40,12 +43,14 @@ class SprintQuo(APIView):
                 status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
+            print(e)
             return Response(
                 {
                     "message": "Data not stored"
                 },
                 status=status.HTTP_400_BAD_REQUEST)
 
+    @verify_token
     def get(self, request):
         """
         this method is created for retrieve data
@@ -53,8 +58,10 @@ class SprintQuo(APIView):
         :return: Response
         """
         try:
-            sprint = Sprint.objects.filter(id=request.data.get("id"))
+            sprint = Sprint.objects.all()
             serializer = SprintSerializer(sprint, many=True)
+            print(sprint)
+            print(serializer.data)
             return Response(
                 {
                     "message": "Here your sprint",
@@ -70,14 +77,18 @@ class SprintQuo(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request):
+    @verify_token
+    def put(self, request, id):
         """
-        this method is created for update the data
+
         :param request: format of the request
-        :return: Response
+        :param id: sprint id
+        :return: response
         """
+        print("hello")
         try:
-            sprint = Sprint.objects.get(id=request.data["id"])
+            sprint = Sprint.objects.get(id=id)
+            print(id)
             serializer = SprintSerializer(sprint, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -104,14 +115,16 @@ class SprintQuo(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-    def delete(self, request):
+    @verify_token
+    def delete(self, request, id):
         """
         This method is created for delete the existing data
         :param request: format of the request
+        :param id: sprint id
         :return: Response
         """
         try:
-            sprint = Sprint.objects.get(id=request.data["id"])
+            sprint = Sprint.objects.get(id=id)
             sprint.delete()
             return Response(
                 {
@@ -140,6 +153,7 @@ class ParameterOfSprint(APIView):
     This class is created for parameter for particular sprint
     """
 
+    @verify_token
     def post(self, request):
         """
         this method is created for inserting the data
@@ -171,6 +185,7 @@ class ParameterOfSprint(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST)
 
+    @verify_token
     def get(self, request):
         """
         this method is created for fetching the data
@@ -194,6 +209,7 @@ class ParameterOfSprint(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST)
 
+    @verify_token
     def put(self, request):
         """
         this method is created for update the existing data
@@ -227,6 +243,7 @@ class ParameterOfSprint(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
+    @verify_token
     def delete(self, request):
         """
         This method is created for delete the existing data
@@ -256,4 +273,3 @@ class ParameterOfSprint(APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
-
