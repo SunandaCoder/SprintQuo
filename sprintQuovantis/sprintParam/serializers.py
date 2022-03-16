@@ -64,7 +64,7 @@ class VoteSerializer(serializers.ModelSerializer):
             sprint_id=validated_data.get("sprint_id"),
             parameter_id=validated_data.get("parameter_id"),
             vote_by=validated_data.get("vote_by"),
-            vote_for= validated_data.get("vote_for"),
+            vote_for=validated_data.get("vote_for"),
         )
 
         return vote
