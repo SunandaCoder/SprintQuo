@@ -1,7 +1,5 @@
 import logging
 from rest_framework.views import APIView
-# from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-# from rest_framework import permissions
 from sprintParam.serializers import SprintSerializer, ParamSerializer
 from rest_framework.response import Response
 from rest_framework import status
@@ -40,15 +38,14 @@ class SprintQuo(APIView):
                 {
                     "message": "validation failed"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             logging.error(e)
-            print(e)
             return Response(
                 {
                     "message": "Data not stored"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @verify_token
     def get(self, request):
@@ -60,8 +57,6 @@ class SprintQuo(APIView):
         try:
             sprint = Sprint.objects.all()
             serializer = SprintSerializer(sprint, many=True)
-            print(sprint)
-            print(serializer.data)
             return Response(
                 {
                     "message": "Here your sprint",
@@ -75,7 +70,7 @@ class SprintQuo(APIView):
                 {
                     "message": "No sprint for you"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @verify_token
     def put(self, request, id):
@@ -88,7 +83,6 @@ class SprintQuo(APIView):
         print("hello")
         try:
             sprint = Sprint.objects.get(id=id)
-            print(id)
             serializer = SprintSerializer(sprint, data=request.data)
             serializer.is_valid(raise_exception=True)
             serializer.save()
@@ -97,17 +91,16 @@ class SprintQuo(APIView):
                     "message": "Sprint updated successfully",
                     "data": serializer.data
                 },
-                status=status.HTTP_202_ACCEPTED)
+                status=status.HTTP_200_OK)
         except ValidationError:
             logging.error("Validation failed")
             return Response(
                 {
                     "message": "Sprint not updated"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             logging.error(e)
-            print(e)
             return Response(
                 {
                     "message": "no such Sprint found",
@@ -137,18 +130,18 @@ class SprintQuo(APIView):
                 {
                     "message": "Sprint not deleted"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             logging.error(e)
             return Response(
                 {
                     "message": "no such sprint found",
                 },
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
-class ParameterOfSprint(APIView):
+class VotingParameter(APIView):
     """
     This class is created for parameter for particular sprint
     """
@@ -176,14 +169,14 @@ class ParameterOfSprint(APIView):
                 {
                     "message": "validation failed"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             logging.error(e)
             return Response(
                 {
                     "message": "Parameter not stored"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @verify_token
     def get(self, request):
@@ -207,7 +200,7 @@ class ParameterOfSprint(APIView):
                 {
                     "message": "No parameter to show"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @verify_token
     def put(self, request):
@@ -226,21 +219,21 @@ class ParameterOfSprint(APIView):
                     "message": "parameter updated successfully",
                     "data": serializer.data
                 },
-                status=status.HTTP_202_ACCEPTED)
+                status=status.HTTP_200_OK)
         except ValidationError:
             logging.error("Validation failed")
             return Response(
                 {
                     "message": "Parameter not updated"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             logging.error(e)
             return Response(
                 {
                     "message": "no such parameter found",
                 },
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     @verify_token
@@ -264,12 +257,12 @@ class ParameterOfSprint(APIView):
                 {
                     "message": "Parameter not deleted"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             logging.error(e)
             return Response(
                 {
                     "message": "no such parameter found",
                 },
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

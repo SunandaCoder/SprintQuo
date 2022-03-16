@@ -66,7 +66,7 @@ class Login(APIView):
                     {
                         "message": "logged in successfully",
                         "data": {"token": encoded_token}
-                    }, status=status.HTTP_202_ACCEPTED)
+                    }, status=status.HTTP_200_OK)
             return Response(
                 {
                     "message": "login failed No user"
