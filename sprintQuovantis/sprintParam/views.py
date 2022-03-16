@@ -38,7 +38,7 @@ class SprintQuo(APIView):
                 {
                     "message": "validation failed"
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
             return Response(
@@ -98,14 +98,14 @@ class SprintQuo(APIView):
                 {
                     "message": "Sprint not updated"
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
             return Response(
                 {
                     "message": "no such Sprint found",
                 },
-                status=status.HTTP_404_NOT_FOUND,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     @verify_token
@@ -130,7 +130,7 @@ class SprintQuo(APIView):
                 {
                     "message": "Sprint not deleted"
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
             return Response(
@@ -169,7 +169,7 @@ class VotingParameter(APIView):
                 {
                     "message": "validation failed"
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
             return Response(
@@ -226,7 +226,7 @@ class VotingParameter(APIView):
                 {
                     "message": "Parameter not updated"
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
             return Response(
@@ -257,7 +257,7 @@ class VotingParameter(APIView):
                 {
                     "message": "Parameter not deleted"
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             logging.error(e)
             return Response(
