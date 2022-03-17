@@ -1,9 +1,13 @@
+import json
 import logging
 from rest_framework.views import APIView
-from sprintParam.serializers import SprintSerializer, ParamSerializer
+from sprintParam.serializers import SprintSerializer, ParamSerializer, VoteSerializer
+from sprintParam.models import Parameter, Votes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
+from collections import Counter
+from collections import defaultdict
 from sprintParam.models import Sprint, Parameter
 from sprintParam.utility import verify_token
 
@@ -15,7 +19,6 @@ class SprintQuo(APIView):
     This class is created for Sprint
     """
 
-    @verify_token
     def post(self, request):
         """
         this method is created for inserting the data
@@ -258,11 +261,213 @@ class VotingParameter(APIView):
                     "message": "Parameter not deleted"
                 },
                 status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserVote(APIView):
+    """
+    This class is creating for vote records
+    """
+
+    @verify_token
+    def post(self, request, id):
+        """
+        this method is created for inserting the voting data
+        :param sprint_id:
+        :param request: format of the request
+        :return: Response
+        """
+
+        try:
+            sprint = {"sprint_id": id}
+            request_data = request.data
+            print(request.data)
+            for votes_dic in request_data:
+                votes_dic.update(sprint)
+                print(votes_dic)
+                votes_obj = Votes.objects.filter(
+                    vote_by=votes_dic.get("vote_by"),
+                    parameter_id=votes_dic.get("parameter_id"),
+                    sprint_id=votes_dic.get("sprint_id")
+                ).first()
+                if votes_dic.get("vote_by") == votes_dic.get("vote_for"):
+                    return Response(
+                        {
+                            "Message": "You Can not vote your self",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    if votes_obj is None:
+                        serializer = VoteSerializer(
+                            data=votes_dic
+                        )
+                        serializer.is_valid(raise_exception=True)
+                        serializer.save()
+                    else:
+                        return Response(
+                            {"Message": "User already vote this parameter please choice another one"},
+                            status=status.HTTP_302_FOUND
+                        )
+            return Response(
+                {
+                    "Message": "User Vote Successfully",
+                    "data": request_data
+                },
+                status=status.HTTP_201_CREATED
+            )
+        except ValidationError:
+            logging.error("Validation Failed")
+            return Response(
+                {
+                    "Message": "Enter Validate credentials"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except Exception as e:
             logging.error(e)
             return Response(
                 {
-                    "message": "no such parameter found",
+                    "Message": "Enter all credentials"
                 },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @verify_token
+    def get(self, request, id, vote_for):
+        """
+        this method is created for fetching the voting data
+        :param id:
+        :param vote_for:
+        :param request: format of the request
+        :return: Response
+        """
+        try:
+            sprint_total = Votes.objects.filter(sprint_id=id, vote_for=vote_for).all()
+            print(sprint_total)
+            serializer = VoteSerializer(sprint_total, many=True)
+            if serializer.data:
+                votes_parameters = defaultdict(list)
+                for vote_dic in serializer.data:
+                    vote_for = vote_dic["vote_for"]
+                    parameter_id = vote_dic["parameter_id"]
+                    vote_by = vote_dic["vote_by"]
+                    votes_parameters["user_id"] = vote_for
+                    votes_parameters["parameters"].append({vote_by: parameter_id})
+                return Response(
+                    {
+                        "vote details": votes_parameters
+                    },
+                    status=status.HTTP_200_OK)
+            else:
+                return Response(
+                    {
+                        "message": " No Parameter for this user"
+                    },
+                    status=status.HTTP_404_NOT_FOUND
+                )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {
+                    "message": " invalidate credentials"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @verify_token
+    def put(self, request, sprint_id):
+        """
+        this method is update for using retrieve data
+        :param sprint_id:
+        :param request: format of the request
+        :return: Response
+        """
+        try:
+            sprint = {"sprint_id": sprint_id}
+            request_data = request.data
+            for votes_dic in request_data:
+                votes_dic.update(sprint)
+                votes_obj = Votes.objects.filter(
+                    vote_by=votes_dic.get("vote_by"),
+                    parameter_id=votes_dic.get("parameter_id"),
+                    sprint_id=votes_dic.get("sprint_id")
+                ).first()
+                if votes_dic.get("vote_by") == votes_dic.get("vote_for"):
+                    return Response(
+                        {
+                            "Message": "You Can not update your self parameter",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                else:
+                    if votes_obj is None:
+                        serializer = VoteSerializer(instance=votes_obj, data=votes_dic)
+                        serializer.is_valid(raise_exception=True)
+                        serializer.save()
+                    else:
+                        votes_obj.delete()
+                        serializer = VoteSerializer(data=votes_dic)
+                        serializer.is_valid(raise_exception=True)
+                        serializer.save()
+
+            return Response(
+                {
+                    "Message": "Update data Successfully ",
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK
+            )
+        except ValidationError:
+            logging.error("Validation Failed")
+            return Response(
+                {
+                    "Message": "Validation Failed"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {
+                    "message": "invalidate credentials"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class Result(APIView):
+    """
+    This class Using for Voting Result
+    """
+
+    @verify_token
+    def get(self, request, id):
+        """
+        this method is created for fetching the voting data
+        :param sprint_id:
+        :param request: format of the request
+        :return: Response
+        """
+        try:
+            sprint_total = Votes.objects.filter(sprint_id=id)
+            serializer = VoteSerializer(sprint_total, many=True)
+            vote_list = []
+            for vote_dic in serializer.data:
+                vote_for = vote_dic["vote_for"]
+                vote_list.append(vote_for)
+            vote_count = Counter(vote_list)
+            winner = max(vote_count, key=lambda x: vote_count[x])
+            return Response(
+                {
+                    "winner is": winner,
+                    "vote index": vote_count,
+                    "vote details": serializer.data
+                },
+                status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {
+                    "message": " No Parameter for you"
+                },
+                status=status.HTTP_404_NOT_FOUND)
