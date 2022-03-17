@@ -22,7 +22,7 @@ class TestUser:
         assert response.status_code == 201
 
     def test_user_registration_blank_username(self, client):
-        # test case for wrong url
+        # test case for blank username
         url = reverse("user_registration")
         user = {
             "username": "",
