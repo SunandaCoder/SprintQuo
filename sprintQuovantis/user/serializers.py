@@ -7,9 +7,9 @@ class UserSerializer(serializers.Serializer):
     Serializer is used to converting the python object
     """
     username = serializers.CharField(required=True, max_length=200)
-    first_name = serializers.CharField(max_length=200)
-    last_name = serializers.CharField(max_length=200)
-    mobile = serializers.IntegerField()
+    # first_name = serializers.CharField(max_length=200)
+    # last_name = serializers.CharField(max_length=200)
+    # mobile = serializers.CharField(max_length=10)
     password = serializers.CharField(max_length=20)
     email = serializers.CharField(max_length=30)
 

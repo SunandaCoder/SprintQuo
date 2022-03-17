@@ -8,11 +8,13 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from collections import Counter
 from collections import defaultdict
+from sprintParam.models import Sprint, Parameter
+from sprintParam.utility import verify_token
 
 logging.basicConfig(filename="views.log", filemode="w")
 
 
-class Sprint(APIView):
+class SprintQuo(APIView):
     """
     This class is created for Sprint
     """
@@ -29,7 +31,7 @@ class Sprint(APIView):
             serializer.save()
             return Response(
                 {
-                    "message": "Data store successfully",
+                    "message": "Sprint store successfully",
                     "data": serializer.data
                 },
                 status=status.HTTP_201_CREATED)
@@ -46,8 +48,9 @@ class Sprint(APIView):
                 {
                     "message": "Data not stored"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @verify_token
     def get(self, request):
         """
         this method is created for retrieve data
@@ -55,29 +58,98 @@ class Sprint(APIView):
         :return: Response
         """
         try:
-            sprint = Sprint.objects.filter(Sprint_id=request.data.get("Sprint_id"))
+            sprint = Sprint.objects.all()
             serializer = SprintSerializer(sprint, many=True)
             return Response(
                 {
                     "message": "Here your sprint",
                     "data": serializer.data
                 },
-                status=status.HTTP_201_CREATED)
+                status=status.HTTP_200_OK)
         except Exception as e:
             print(e)
             logging.error(e)
             return Response(
                 {
-                    "message": "No notes for you"
+                    "message": "No sprint for you"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @verify_token
+    def put(self, request, id):
+        """
+
+        :param request: format of the request
+        :param id: sprint id
+        :return: response
+        """
+        print("hello")
+        try:
+            sprint = Sprint.objects.get(id=id)
+            serializer = SprintSerializer(sprint, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(
+                {
+                    "message": "Sprint updated successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK)
+        except ValidationError:
+            logging.error("Validation failed")
+            return Response(
+                {
+                    "message": "Sprint not updated"
                 },
                 status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {
+                    "message": "no such Sprint found",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @verify_token
+    def delete(self, request, id):
+        """
+        This method is created for delete the existing data
+        :param request: format of the request
+        :param id: sprint id
+        :return: Response
+        """
+        try:
+            sprint = Sprint.objects.get(id=id)
+            sprint.delete()
+            return Response(
+                {
+                    "message": "Sprint deleted successfully"
+                },
+                status=status.HTTP_200_OK)
+        except ValidationError:
+            logging.error("Validation failed")
+            return Response(
+                {
+                    "message": "Sprint not deleted"
+                },
+                status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {
+                    "message": "no such sprint found",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
-class ParameterOfSprint(APIView):
+class VotingParameter(APIView):
     """
     This class is created for parameter for particular sprint
     """
 
+    @verify_token
     def post(self, request):
         """
         this method is created for inserting the data
@@ -90,7 +162,7 @@ class ParameterOfSprint(APIView):
             serializer.save()
             return Response(
                 {
-                    "message": "Data store successfully",
+                    "message": "Parameter store successfully",
                     "data": serializer.data
                 },
                 status=status.HTTP_201_CREATED)
@@ -105,7 +177,88 @@ class ParameterOfSprint(APIView):
             logging.error(e)
             return Response(
                 {
-                    "message": "Data not stored"
+                    "message": "Parameter not stored"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @verify_token
+    def get(self, request):
+        """
+        this method is created for fetching the data
+        :param request: format of the request
+        :return: Response
+        """
+        try:
+            para = Parameter.objects.all()
+            serializer = ParamSerializer(para, many=True)
+            return Response(
+                {
+                    "message": "Here your parameter",
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK)
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {
+                    "message": "No parameter to show"
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @verify_token
+    def put(self, request):
+        """
+        this method is created for update the existing data
+        :param request: format of the request
+        :return: Response
+        """
+        try:
+            para = Parameter.objects.get(id=request.data["id"])
+            serializer = ParamSerializer(para, data=request.data)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(
+                {
+                    "message": "parameter updated successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_200_OK)
+        except ValidationError:
+            logging.error("Validation failed")
+            return Response(
+                {
+                    "message": "Parameter not updated"
+                },
+                status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logging.error(e)
+            return Response(
+                {
+                    "message": "no such parameter found",
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    @verify_token
+    def delete(self, request):
+        """
+        This method is created for delete the existing data
+        :param request: format of the request
+        :return: Response
+        """
+        try:
+            para = Parameter.objects.get(id=request.data["id"])
+            para.delete()
+            return Response(
+                {
+                    "message": "Parameter deleted successfully"
+                },
+                status=status.HTTP_200_OK)
+        except ValidationError:
+            logging.error("Validation failed")
+            return Response(
+                {
+                    "message": "Parameter not deleted"
                 },
                 status=status.HTTP_400_BAD_REQUEST)
 
@@ -115,7 +268,8 @@ class UserVote(APIView):
     This class is creating for vote records
     """
 
-    def post(self, request, sprint_id=None):
+    @verify_token
+    def post(self, request, id):
         """
         this method is created for inserting the voting data
         :param sprint_id:
@@ -124,10 +278,12 @@ class UserVote(APIView):
         """
 
         try:
-            sprint = {"sprint_id": sprint_id}
+            sprint = {"sprint_id": id}
             request_data = request.data
+            print(request.data)
             for votes_dic in request_data:
                 votes_dic.update(sprint)
+                print(votes_dic)
                 votes_obj = Votes.objects.filter(
                     vote_by=votes_dic.get("vote_by"),
                     parameter_id=votes_dic.get("parameter_id"),
@@ -138,7 +294,7 @@ class UserVote(APIView):
                         {
                             "Message": "You Can not vote your self",
                         },
-                        status=status.HTTP_201_CREATED
+                        status=status.HTTP_400_BAD_REQUEST
                     )
                 else:
                     if votes_obj is None:
@@ -152,13 +308,13 @@ class UserVote(APIView):
                             {"Message": "User already vote this parameter please choice another one"},
                             status=status.HTTP_302_FOUND
                         )
-                return Response(
-                    {
-                        "Message": "User Vote Successfully",
-                        "data": request_data
-                    },
-                    status=status.HTTP_201_CREATED
-                )
+            return Response(
+                {
+                    "Message": "User Vote Successfully",
+                    "data": request_data
+                },
+                status=status.HTTP_201_CREATED
+            )
         except ValidationError:
             logging.error("Validation Failed")
             return Response(
@@ -173,19 +329,21 @@ class UserVote(APIView):
                 {
                     "Message": "Enter all credentials"
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    def get(self, request, sprint_id, user_id):
+    @verify_token
+    def get(self, request, id, vote_for):
         """
         this method is created for fetching the voting data
-        :param user_id:
-        :param sprint_id:
+        :param id:
+        :param vote_for:
         :param request: format of the request
         :return: Response
         """
         try:
-            sprint_total = Votes.objects.filter(sprint_id=sprint_id, vote_for=user_id).all()
+            sprint_total = Votes.objects.filter(sprint_id=id, vote_for=vote_for).all()
+            print(sprint_total)
             serializer = VoteSerializer(sprint_total, many=True)
             if serializer.data:
                 votes_parameters = defaultdict(list)
@@ -205,7 +363,7 @@ class UserVote(APIView):
                     {
                         "message": " No Parameter for this user"
                     },
-                    status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_404_NOT_FOUND
                 )
         except Exception as e:
             logging.error(e)
@@ -213,9 +371,10 @@ class UserVote(APIView):
                 {
                     "message": " invalidate credentials"
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @verify_token
     def put(self, request, sprint_id):
         """
         this method is update for using retrieve data
@@ -233,22 +392,30 @@ class UserVote(APIView):
                     parameter_id=votes_dic.get("parameter_id"),
                     sprint_id=votes_dic.get("sprint_id")
                 ).first()
-                if votes_obj is None:
-                    serializer = VoteSerializer(instance=votes_obj, data=votes_dic)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
+                if votes_dic.get("vote_by") == votes_dic.get("vote_for"):
+                    return Response(
+                        {
+                            "Message": "You Can not update your self parameter",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
                 else:
-                    votes_obj.delete()
-                    serializer = VoteSerializer(data=votes_dic)
-                    serializer.is_valid(raise_exception=True)
-                    serializer.save()
+                    if votes_obj is None:
+                        serializer = VoteSerializer(instance=votes_obj, data=votes_dic)
+                        serializer.is_valid(raise_exception=True)
+                        serializer.save()
+                    else:
+                        votes_obj.delete()
+                        serializer = VoteSerializer(data=votes_dic)
+                        serializer.is_valid(raise_exception=True)
+                        serializer.save()
 
             return Response(
                 {
                     "Message": "Update data Successfully ",
                     "data": serializer.data
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_200_OK
             )
         except ValidationError:
             logging.error("Validation Failed")
@@ -264,7 +431,7 @@ class UserVote(APIView):
                 {
                     "message": "invalidate credentials"
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
 
@@ -273,7 +440,8 @@ class Result(APIView):
     This class Using for Voting Result
     """
 
-    def get(self, request, sprint_id):
+    @verify_token
+    def get(self, request, id):
         """
         this method is created for fetching the voting data
         :param sprint_id:
@@ -281,7 +449,7 @@ class Result(APIView):
         :return: Response
         """
         try:
-            sprint_total = Votes.objects.filter(sprint_id=sprint_id)
+            sprint_total = Votes.objects.filter(sprint_id=id)
             serializer = VoteSerializer(sprint_total, many=True)
             vote_list = []
             for vote_dic in serializer.data:
@@ -302,4 +470,4 @@ class Result(APIView):
                 {
                     "message": " No Parameter for you"
                 },
-                status=status.HTTP_400_BAD_REQUEST)
+                status=status.HTTP_404_NOT_FOUND)

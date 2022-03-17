@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from sprintParam.models import Sprint,Parameter,Votes
+from sprintParam.models import Votes
+from sprintParam.models import Sprint, Parameter
 
 
 class SprintSerializer(serializers.ModelSerializer):
@@ -19,8 +20,8 @@ class SprintSerializer(serializers.ModelSerializer):
         """
         sprint = Sprint.objects.create(
             sprint_name=validate_data.get("sprint_name"),
-            start_date=validate_data.get("start_date"),
-            end_date=validate_data.get("end_date")
+            entry_date=validate_data.get("entry_date"),
+            expiry_date=validate_data.get("expiry_date")
         )
         return sprint
 
