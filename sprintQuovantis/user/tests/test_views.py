@@ -21,12 +21,40 @@ class TestUser:
         response = client.post(url, user)
         assert response.status_code == 201
 
+    def test_user_registration_wrong_url(self, client):
+        # test case create their own database to test the views
+        url = reverse("user_registration1345xd")
+        user = {
+            "username": "sunanda",
+            "password": "root",
+            "email": "ssunanda02@gmail.com",
+            "mobile": "7578061886",
+            "first_name": "sunanda",
+            "last_name": "shil",
+        }
+        response = client.post(url, user)
+        assert response.status_code == 201
+
     def test_user_registration_blank_username(self, client):
         # test case for blank username
         url = reverse("user_registration")
         user = {
             "username": "",
             "password": "root",
+            "email": "ssunanda02@gmail.com",
+            "mobile": "7578061886",
+            "first_name": "sunanda",
+            "last_name": "shil",
+        }
+        response = client.post(url, user)
+        assert response.status_code == 400
+
+    def test_user_registration_blank_password(self, client):
+        # test case for blank username
+        url = reverse("user_registration")
+        user = {
+            "username": "",
+            "password": "",
             "email": "ssunanda02@gmail.com",
             "mobile": "7578061886",
             "first_name": "sunanda",
