@@ -1,4 +1,3 @@
-import json
 import logging
 from rest_framework.views import APIView
 from sprintParam.serializers import SprintSerializer, ParamSerializer, VoteSerializer
@@ -278,12 +277,13 @@ class UserVote(APIView):
         """
 
         try:
+
             sprint = {"sprint_id": id}
-            request_data = request.data
-            print(request.data)
+            vote_by = {"vote_by": request.data.get("user_id")}
+            request_data = request.data.get("vote_table")
             for votes_dic in request_data:
                 votes_dic.update(sprint)
-                print(votes_dic)
+                votes_dic.update(vote_by)
                 votes_obj = Votes.objects.filter(
                     vote_by=votes_dic.get("vote_by"),
                     parameter_id=votes_dic.get("parameter_id"),
@@ -306,7 +306,7 @@ class UserVote(APIView):
                     else:
                         return Response(
                             {"Message": "User already vote this parameter please choice another one"},
-                            status=status.HTTP_302_FOUND
+                            status=status.HTTP_400_BAD_REQUEST
                         )
             return Response(
                 {
@@ -333,7 +333,7 @@ class UserVote(APIView):
             )
 
     @verify_token
-    def get(self, request, id, vote_for):
+    def get(self, request, id):
         """
         this method is created for fetching the voting data
         :param id:
@@ -342,17 +342,14 @@ class UserVote(APIView):
         :return: Response
         """
         try:
-            sprint_total = Votes.objects.filter(sprint_id=id, vote_for=vote_for).all()
-            print(sprint_total)
+            sprint_total = Votes.objects.filter(sprint_id=id,vote_by=request.data.get("user_id"))
             serializer = VoteSerializer(sprint_total, many=True)
             if serializer.data:
                 votes_parameters = defaultdict(list)
                 for vote_dic in serializer.data:
-                    vote_for = vote_dic["vote_for"]
                     parameter_id = vote_dic["parameter_id"]
                     vote_by = vote_dic["vote_by"]
-                    votes_parameters["user_id"] = vote_for
-                    votes_parameters["parameters"].append({vote_by: parameter_id})
+                    votes_parameters["vote_by:parameters"].append({vote_by: parameter_id})
                 return Response(
                     {
                         "vote details": votes_parameters
@@ -375,7 +372,7 @@ class UserVote(APIView):
             )
 
     @verify_token
-    def put(self, request, sprint_id):
+    def put(self, request, id):
         """
         this method is update for using retrieve data
         :param sprint_id:
@@ -383,10 +380,12 @@ class UserVote(APIView):
         :return: Response
         """
         try:
-            sprint = {"sprint_id": sprint_id}
-            request_data = request.data
+            sprint = {"sprint_id": id}
+            vote_by = {"vote_by": request.data.get("user_id")}
+            request_data = request.data.get("vote_table")
             for votes_dic in request_data:
                 votes_dic.update(sprint)
+                votes_dic.update(vote_by)
                 votes_obj = Votes.objects.filter(
                     vote_by=votes_dic.get("vote_by"),
                     parameter_id=votes_dic.get("parameter_id"),

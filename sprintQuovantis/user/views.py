@@ -26,7 +26,9 @@ class UserRegistration(APIView):
             return Response(
                 {
                     'message': "Successfully Registered"
-                })
+                },
+                status=status.HTTP_201_CREATED
+            )
 
         except ValidationError:
             logging.error("Validation failed")
