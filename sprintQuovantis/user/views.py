@@ -78,5 +78,3 @@ class Login(APIView):
             logging.error("Authentication failed")
 
 
-class PasswordReset(APIView):
-    pass
