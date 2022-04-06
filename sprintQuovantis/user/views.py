@@ -26,7 +26,9 @@ class UserRegistration(APIView):
             return Response(
                 {
                     'message': "Successfully Registered"
-                })
+                },
+                status=status.HTTP_201_CREATED
+            )
 
         except ValidationError:
             logging.error("Validation failed")
@@ -74,3 +76,5 @@ class Login(APIView):
                 status=status.HTTP_404_NOT_FOUND)
         except ValidationError:
             logging.error("Authentication failed")
+
+
