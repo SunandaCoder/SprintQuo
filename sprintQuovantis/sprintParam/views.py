@@ -347,11 +347,13 @@ class UserVote(APIView):
             if serializer.data:
                 votes_parameters = defaultdict(list)
                 for vote_dic in serializer.data:
-                    parameter_id = vote_dic["parameter_id"]
                     vote_by = vote_dic["vote_by"]
-                    votes_parameters["vote_by:parameters"].append({vote_by: parameter_id})
+                    parameter_id = vote_dic["parameter_id"]
+                    vote_for = vote_dic["vote_for"]
+                    votes_parameters["vote_for:parameters"].append({vote_for: parameter_id})
                 return Response(
                     {
+                        "vote_by": vote_by,
                         "vote details": votes_parameters
                     },
                     status=status.HTTP_200_OK)

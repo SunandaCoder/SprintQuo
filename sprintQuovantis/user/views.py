@@ -76,3 +76,7 @@ class Login(APIView):
                 status=status.HTTP_404_NOT_FOUND)
         except ValidationError:
             logging.error("Authentication failed")
+
+
+class PasswordReset(APIView):
+    pass
